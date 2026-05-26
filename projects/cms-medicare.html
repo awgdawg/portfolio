@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CMS Medicare claims analytics — August Turner</title>
+  <meta name="description" content="BigQuery case study (in development): spending and utilization patterns across CMS public datasets.">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="../" class="nav-brand">aug.turner</a>
+      <a href="../#projects" class="nav-links" style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase;">← back to portfolio</a>
+    </div>
+  </nav>
+
+  <header class="cs-container cs-header">
+    <div class="cs-crumb">// projects / case-study · 02</div>
+    <h1 class="cs-title">CMS Medicare<br>claims analytics.</h1>
+    <p class="cs-subtitle">Spending and utilization patterns across the CMS public claims datasets — SQL transformations, partitioning strategy, and a Looker Studio dashboard built on top.</p>
+    <div class="cs-meta">
+      <div class="cs-meta-item"><div class="lbl">// dataset</div><div class="val">bigquery-public-data.cms_medicare</div></div>
+      <div class="cs-meta-item"><div class="lbl">// type</div><div class="val"><span class="badge planned">planned</span></div></div>
+    </div>
+  </header>
+
+  <div class="cs-container cs-body">
+    <aside class="cs-toc">
+      <div class="toc-label">// contents</div>
+      <ul>
+        <li class="active"><a href="#scope">01 · Scope</a></li>
+        <li><a href="#stack">02 · Planned stack</a></li>
+      </ul>
+    </aside>
+
+    <main>
+      <div class="dev-banner">Status: in development — case study lands when the project ships.</div>
+
+      <section id="scope" class="cs-section">
+        <div class="cs-section-num">// 01 / scope</div>
+        <h2>What's planned.</h2>
+        <p>Goal: a clean, reproducible analytics workflow on CMS Medicare claims data — the kind that turns a public dataset into a working dashboard. Modeling questions like provider-level spend variance, regional utilization trends, and procedure-mix shifts over time.</p>
+        <ul>
+          <li>Source: BigQuery public dataset <code class="mono">bigquery-public-data.cms_medicare</code></li>
+          <li>Transformations: layered SQL views, partitioned on claim date, clustered on provider</li>
+          <li>Output: an embedded Looker Studio dashboard, plus a writeup of cost/perf tradeoffs</li>
+        </ul>
+      </section>
+
+      <section id="stack" class="cs-section">
+        <div class="cs-section-num">// 02 / planned stack</div>
+        <h2>Stack.</h2>
+        <div class="pill-row">
+          <span class="pill">BigQuery</span>
+          <span class="pill">SQL</span>
+          <span class="pill">Looker Studio</span>
+          <span class="pill">dbt</span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>aug.turner / 2026 · KC, MO</span>
+      <span>built with ♥ + SQL</span>
+    </div>
+  </footer>
+
+  <script>
+    // Active TOC highlight on scroll
+    const tocLinks = document.querySelectorAll('.cs-toc li');
+    const sections = document.querySelectorAll('.cs-section[id]');
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const id = e.target.id;
+        tocLinks.forEach((li) => li.classList.toggle('active', li.querySelector('a').getAttribute('href') === '#' + id));
+      });
+    }, { rootMargin: '-30% 0px -65% 0px' });
+    sections.forEach((s) => obs.observe(s));
+  </script>
+</body>
+</html>
