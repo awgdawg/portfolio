@@ -253,3 +253,56 @@ a { color: inherit; text-decoration: none; }
   border-color: var(--border-strong);
   background: var(--accent-bg);
 }
+
+/* ===== Projects Grid ===== */
+.proj-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 24px;
+}
+.proj {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 18px;
+  min-height: 130px;
+  display: block;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.proj:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+.proj-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+.proj-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 17px;
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+.proj-desc {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+.badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  padding: 2px 7px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.badge.live { color: var(--live); border-color: var(--live-border); }
+.badge.planned { color: #d4a05e; border-color: var(--border-strong); }
+.badge.work { color: var(--text-dim); border-color: var(--border); }
