@@ -52,7 +52,7 @@
   <div class="section-label">// 02 / about</div>
   <h2 class="section-title">What I do.</h2>
   <p class="prose">
-    I build the data infrastructure behind clinical and operational reporting — <strong>ETL pipelines, semantic models, &amp; performance-tuned warehouses</strong>. My current work migrates large SQL Server reporting workloads onto Snowflake and OCI, rebuilding the BI layer for accuracy and speed. Background: BS in Ecology &amp; Evolutionary Biology, self-taught into data, currently looking for my next BI / analytics engineering role.
+    I build the data infrastructure behind clinical and operational reporting — <strong>ETL pipelines, semantic models, &amp; performance-tuned warehouses</strong>. My current work migrates large SQL Server reporting workloads onto Snowflake and OCI, rebuilding the BI layer for accuracy and speed. Background: BS in Ecology &amp; Evolutionary Biology, self-taught into data, currently looking for my next BI analytics / engineering role.
   </p>
 </section>
     <section id="skills" class="container section">
@@ -104,7 +104,7 @@
       <p class="proj-desc">Rebuilt enterprise reporting pipeline from SQL Server to Snowflake/OCI. 8× query speedup, 10M+ rows migrated, full Power BI semantic model refactor.</p>
     </a>
     <a class="proj" href="projects/cms-medicare.html">
-      <div class="proj-top"><span>// bigquery</span><span class="badge planned">planned</span></div>
+      <div class="proj-top"><span>// bigquery</span><span class="badge live">live</span></div>
       <h3 class="proj-title">CMS Medicare claims analytics</h3>
       <p class="proj-desc">Spending and utilization patterns across CMS public datasets. SQL transformations, partitioning strategy, Looker Studio dashboard.</p>
     </a>
@@ -135,10 +135,11 @@
   <h2 class="section-title">Live BigQuery board.</h2>
   <p class="prose" style="margin-bottom: 20px;">A real Looker Studio dashboard powered by one of the case-study queries — embedded, refreshes from BigQuery.</p>
   <div class="bq-embed" id="bq-embed">
-    <div class="bq-placeholder">
-      <div class="bq-placeholder-title">[ Looker Studio embed pending ]</div>
-      <div class="bq-placeholder-sub">— ships with the CMS Medicare project —</div>
-    </div>
+    <iframe src="https://datastudio.google.com/embed/reporting/e620b108-dee9-4f15-923f-5cb0d60b7331/page/rAQzF"
+            style="width:100%;height:100%;border:0;"
+            loading="lazy"
+            title="CMS Medicare cost-payment gap dashboard"
+            allowfullscreen></iframe>
   </div>
 </section>
     <section id="contact" class="container section">

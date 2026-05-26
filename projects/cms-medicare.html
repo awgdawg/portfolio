@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>CMS Medicare claims analytics — August Turner</title>
-  <meta name="description" content="BigQuery case study (in development): spending and utilization patterns across CMS public datasets.">
+  <meta name="description" content="dbt-bigquery case study: modeled the cost-vs-payment gap on CMS Medicare claims, 2011-2015. Looker Studio dashboard embedded.">
   <meta property="og:type" content="website">
   <meta property="og:title" content="CMS Medicare claims analytics — August Turner">
-  <meta property="og:description" content="BigQuery case study (in development): spending and utilization patterns across CMS public datasets.">
+  <meta property="og:description" content="dbt-bigquery case study: modeled the cost-vs-payment gap on CMS Medicare claims, 2011-2015.">
   <meta property="og:url" content="https://augustturner.dev/projects/cms-medicare.html">
   <meta property="og:image" content="https://augustturner.dev/assets/og-image.png">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="CMS Medicare claims analytics — August Turner">
-  <meta name="twitter:description" content="BigQuery case study (in development): spending and utilization patterns across CMS public datasets.">
+  <meta name="twitter:description" content="dbt-bigquery case study: modeled the cost-vs-payment gap on CMS Medicare claims, 2011-2015.">
   <meta name="twitter:image" content="https://augustturner.dev/assets/og-image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -31,10 +31,10 @@
   <header class="cs-container cs-header">
     <div class="cs-crumb">// projects / case-study · 02</div>
     <h1 class="cs-title">CMS Medicare<br>claims analytics.</h1>
-    <p class="cs-subtitle">Spending and utilization patterns across the CMS public claims datasets — SQL transformations, partitioning strategy, and a Looker Studio dashboard built on top.</p>
+    <p class="cs-subtitle">A dbt-bigquery project modeling the gap between what providers charge for Medicare services and what Medicare actually pays them. Five years of public claims data, Kimball star schema, dashboard embedded below.</p>
     <div class="cs-meta">
       <div class="cs-meta-item"><div class="lbl">// dataset</div><div class="val">bigquery-public-data.cms_medicare</div></div>
-      <div class="cs-meta-item"><div class="lbl">// type</div><div class="val"><span class="badge planned">planned</span></div></div>
+      <div class="cs-meta-item"><div class="lbl">// type</div><div class="val"><span class="badge live">bigquery · live</span></div></div>
     </div>
   </header>
 
@@ -42,33 +42,75 @@
     <aside class="cs-toc">
       <div class="toc-label">// contents</div>
       <ul>
-        <li class="active"><a href="#scope">01 · Scope</a></li>
-        <li><a href="#stack">02 · Planned stack</a></li>
+        <li class="active"><a href="#problem">01 · Problem</a></li>
+        <li><a href="#approach">02 · Approach</a></li>
+        <li><a href="#outcome">03 · Outcome</a></li>
+        <li><a href="#stack">04 · Stack</a></li>
+        <li><a href="#links">05 · Links</a></li>
       </ul>
     </aside>
 
     <main id="main">
-      <div class="dev-banner">Status: in development — case study lands when the project ships.</div>
+      <section id="problem" class="cs-section">
+        <div class="cs-section-num">// 01 / problem</div>
+        <h2>Hospital charges vs Medicare reimbursement.</h2>
+        <p>Medicare publishes provider-level charge and payment data — but raw, in 10 separate yearly tables, with inconsistent column names between inpatient and outpatient settings. To analyze the <strong>cost-vs-payment gap</strong> — what hospitals bill compared to what's actually paid — you need to harmonize the schemas, parse procedure codes from natural-language strings, and join against a clean dimensional model.</p>
+        <p>Without that scaffolding, every analytical question becomes a one-off SQL adventure.</p>
+      </section>
 
-      <section id="scope" class="cs-section">
-        <div class="cs-section-num">// 01 / scope</div>
-        <h2>What's planned.</h2>
-        <p>Goal: a clean, reproducible analytics workflow on CMS Medicare claims data — the kind that turns a public dataset into a working dashboard. Modeling questions like provider-level spend variance, regional utilization trends, and procedure-mix shifts over time.</p>
+      <section id="approach" class="cs-section">
+        <div class="cs-section-num">// 02 / approach</div>
+        <h2>dbt-bigquery, Kimball-style.</h2>
+        <p>Built a <strong>13-model dbt project</strong> with the standard staging → intermediate → marts layering, plus a star schema (4 dimensions + 1 fact) under the marts layer. All transformations are SQL-only, materialized to BigQuery tables for fast dashboard reads.</p>
+        <pre class="code-block"><span class="sql-comment">-- fact_provider_procedure_year.sql</span>
+<span class="sql-comment">-- Generates surrogate keys matching the dim formulas — joins line up by hash equality.</span>
+<span class="sql-keyword">SELECT</span>
+  {{ dbt_utils.generate_surrogate_key(['s.provider_id']) }}                  <span class="sql-keyword">AS</span> provider_sk,
+  {{ dbt_utils.generate_surrogate_key(['s.procedure_code', 's.setting']) }}  <span class="sql-keyword">AS</span> procedure_sk,
+  {{ dbt_utils.generate_surrogate_key(['s.provider_state']) }}               <span class="sql-keyword">AS</span> geo_sk,
+  s.year, s.total_services, s.avg_covered_charges, s.avg_total_payments,
+  {{ <span class="sql-fn">cost_payment_ratio</span>('s.avg_covered_charges', 's.avg_total_payments') }} <span class="sql-keyword">AS</span> cost_payment_ratio
+<span class="sql-keyword">FROM</span> {{ <span class="sql-fn">ref</span>('int_provider_procedure_unioned') }} s;</pre>
         <ul>
-          <li>Source: BigQuery public dataset <code class="mono">bigquery-public-data.cms_medicare</code></li>
-          <li>Transformations: layered SQL views, partitioned on claim date, clustered on provider</li>
-          <li>Output: an embedded Looker Studio dashboard, plus a writeup of cost/perf tradeoffs</li>
+          <li>Sources: 10 public CMS Medicare tables (inpatient + outpatient × 5 years, ~1.1M fact rows after union)</li>
+          <li>Staging unions years and normalizes column names; intermediate parses the embedded procedure codes</li>
+          <li>Tests: surrogate-key uniqueness, referential integrity to dims, no-negative-charges, ratio sanity (64 tests total, all green)</li>
+          <li>CI: GitHub Actions runs <code class="mono">dbt build</code> on every push</li>
         </ul>
       </section>
 
+      <section id="outcome" class="cs-section">
+        <div class="cs-section-num">// 03 / outcome</div>
+        <h2>The gap, quantified.</h2>
+        <div class="outcome-grid">
+          <div class="outcome"><div class="lbl">national ratio</div><div class="val">3.92×</div></div>
+          <div class="outcome"><div class="lbl">providers analyzed</div><div class="val">3,975</div></div>
+          <div class="outcome"><div class="lbl">services modeled</div><div class="val">188.8M</div></div>
+        </div>
+        <p>Hospitals charge an average <strong>3.92× what Medicare pays</strong> — and that ratio varies dramatically by procedure (outpatient APC 0336 tops the list at <strong>8.52×</strong>) and by state (<strong>New Jersey at 6.30×</strong>, with Nevada and Florida close behind). The dashboard at the bottom of the portfolio homepage embeds the full Looker Studio report.</p>
+        <p>The whole pipeline ships as a clean dbt project — lineage docs, tests, CI all in place. Code in the repo below.</p>
+      </section>
+
       <section id="stack" class="cs-section">
-        <div class="cs-section-num">// 02 / planned stack</div>
+        <div class="cs-section-num">// 04 / stack</div>
         <h2>Stack.</h2>
         <div class="pill-row">
+          <span class="pill">dbt-core</span>
+          <span class="pill">dbt-bigquery</span>
           <span class="pill">BigQuery</span>
-          <span class="pill">SQL</span>
           <span class="pill">Looker Studio</span>
-          <span class="pill">dbt</span>
+          <span class="pill">Python</span>
+          <span class="pill">GitHub Actions</span>
+          <span class="pill">SQL</span>
+        </div>
+      </section>
+
+      <section id="links" class="cs-section">
+        <div class="cs-section-num">// 05 / links</div>
+        <h2>References.</h2>
+        <div class="link-row">
+          <div class="link-card"><div class="lbl">// repo</div><div class="val"><a href="https://github.com/awgdawg/cms-medicare-analytics" target="_blank" rel="noopener" style="color:var(--accent)">↗ github.com/awgdawg/cms-medicare-analytics</a></div></div>
+          <div class="link-card"><div class="lbl">// dashboard</div><div class="val"><a href="https://datastudio.google.com/s/rYT5j5V-s3Y" target="_blank" rel="noopener" style="color:var(--accent)">↗ open in Looker Studio</a></div></div>
         </div>
       </section>
     </main>
@@ -82,7 +124,6 @@
   </footer>
 
   <script>
-    // Active TOC highlight on scroll
     const tocLinks = document.querySelectorAll('.cs-toc li');
     const sections = document.querySelectorAll('.cs-section[id]');
     const obs = new IntersectionObserver((entries) => {
