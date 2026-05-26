@@ -368,3 +368,11 @@ a { color: inherit; text-decoration: none; }
   color: var(--text);
 }
 
+/* ===== Scroll reveal ===== */
+.reveal { opacity: 0; transform: translateY(8px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.reveal-in { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  .reveal, .reveal-in { opacity: 1; transform: none; transition: none; }
+  .status-pill::before { animation: none; }
+}
+
