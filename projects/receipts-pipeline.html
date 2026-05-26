@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Gmail → PDF receipt pipeline — August Turner</title>
+  <meta name="description" content="Personal project: Python ETL pulling receipts from Gmail, parsing metadata, and generating structured PDF archives.">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="../" class="nav-brand">aug.turner</a>
+      <a href="../#projects" class="nav-links" style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase;">← back to portfolio</a>
+    </div>
+  </nav>
+
+  <header class="cs-container cs-header">
+    <div class="cs-crumb">// projects / case-study · 05</div>
+    <h1 class="cs-title">Gmail → PDF<br>receipt pipeline.</h1>
+    <p class="cs-subtitle">Python automation that pulls receipts from Gmail, parses sender + amount + date metadata, generates clean PDFs, and files them into a structured archive — an ETL workflow built on personal email.</p>
+    <div class="cs-meta">
+      <div class="cs-meta-item"><div class="lbl">// repo</div><div class="val"><a href="https://github.com/awgdawg/Receipts" target="_blank" rel="noopener" style="color:var(--accent)">awgdawg/Receipts ↗</a></div></div>
+      <div class="cs-meta-item"><div class="lbl">// type</div><div class="val"><span class="badge live">personal · live</span></div></div>
+    </div>
+  </header>
+
+  <div class="cs-container cs-body">
+    <aside class="cs-toc">
+      <div class="toc-label">// contents</div>
+      <ul>
+        <li class="active"><a href="#problem">01 · Problem</a></li>
+        <li><a href="#approach">02 · Approach</a></li>
+        <li><a href="#outcome">03 · Outcome</a></li>
+        <li><a href="#stack">04 · Stack</a></li>
+      </ul>
+    </aside>
+
+    <main>
+      <section id="problem" class="cs-section">
+        <div class="cs-section-num">// 01 / problem</div>
+        <h2>Receipts live in email forever.</h2>
+        <p>Every online purchase generates a receipt that ends up buried in Gmail — searchable, but not portable. For expense tracking, taxes, and warranty claims, you need them as actual files, organized by vendor and date. Doing it by hand is tedious and inconsistent.</p>
+      </section>
+
+      <section id="approach" class="cs-section">
+        <div class="cs-section-num">// 02 / approach</div>
+        <h2>Build the ETL the way you'd build it at work.</h2>
+        <p>Treated personal email as a data source. Wrote a Python pipeline that <strong>extracts</strong> matching emails via the Gmail API, <strong>transforms</strong> the parsed metadata (sender, amount, date, vendor) into a normalized shape, and <strong>loads</strong> generated PDFs into a date-partitioned directory structure.</p>
+        <ul>
+          <li>Gmail API with OAuth — pulls messages matching a configurable filter</li>
+          <li>Metadata parsing handles HTML, plaintext, and attached-PDF variants</li>
+          <li>PDF generation for emails that only have HTML receipts</li>
+          <li>Idempotent — tracks processed message IDs to avoid duplicates on re-run</li>
+        </ul>
+      </section>
+
+      <section id="outcome" class="cs-section">
+        <div class="cs-section-num">// 03 / outcome</div>
+        <h2>An archive that actually exists.</h2>
+        <p>Years of receipts now live as structured PDFs on disk, organized by date and vendor. Re-running the script is a no-op for already-processed mail. The pipeline doubles as a working reference for "what a real ETL looks like, end to end" — useful as a portfolio artifact for someone otherwise constrained by NDAs.</p>
+      </section>
+
+      <section id="stack" class="cs-section">
+        <div class="cs-section-num">// 04 / stack</div>
+        <h2>Stack.</h2>
+        <div class="pill-row">
+          <span class="pill">Python</span>
+          <span class="pill">Gmail API</span>
+          <span class="pill">OAuth 2.0</span>
+          <span class="pill">PDFKit</span>
+          <span class="pill">pdfplumber</span>
+          <span class="pill">BeautifulSoup</span>
+        </div>
+        <div class="link-row" style="margin-top:18px">
+          <div class="link-card"><div class="lbl">// repo</div><div class="val"><a href="https://github.com/awgdawg/Receipts" target="_blank" rel="noopener" style="color:var(--accent)">↗ github.com/awgdawg/Receipts</a></div></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>aug.turner / 2026 · KC, MO</span>
+      <span>built with ♥ + SQL</span>
+    </div>
+  </footer>
+
+  <script>
+    // Active TOC highlight on scroll
+    const tocLinks = document.querySelectorAll('.cs-toc li');
+    const sections = document.querySelectorAll('.cs-section[id]');
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const id = e.target.id;
+        tocLinks.forEach((li) => li.classList.toggle('active', li.querySelector('a').getAttribute('href') === '#' + id));
+      });
+    }, { rootMargin: '-30% 0px -65% 0px' });
+    sections.forEach((s) => obs.observe(s));
+  </script>
+</body>
+</html>

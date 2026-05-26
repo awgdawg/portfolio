@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CB Trading Journal — August Turner</title>
+  <meta name="description" content="Personal project (WIP): Python ETL pulling trades from Coinbase + Robinhood APIs into a unified PostgreSQL ledger.">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="../" class="nav-brand">aug.turner</a>
+      <a href="../#projects" class="nav-links" style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase;">← back to portfolio</a>
+    </div>
+  </nav>
+
+  <header class="cs-container cs-header">
+    <div class="cs-crumb">// projects / case-study · 06</div>
+    <h1 class="cs-title">CB Trading<br>Journal.</h1>
+    <p class="cs-subtitle">Personal trading-data ETL — pulls trades from Coinbase and Robinhood APIs, normalizes into a single Postgres schema, and surfaces P&amp;L plus position analytics on top.</p>
+    <div class="cs-meta">
+      <div class="cs-meta-item"><div class="lbl">// repo</div><div class="val"><a href="https://github.com/awgdawg/CB-Trading-Journal" target="_blank" rel="noopener" style="color:var(--accent)">awgdawg/CB-Trading-Journal ↗</a></div></div>
+      <div class="cs-meta-item"><div class="lbl">// type</div><div class="val"><span class="badge live">personal · WIP</span></div></div>
+    </div>
+  </header>
+
+  <div class="cs-container cs-body">
+    <aside class="cs-toc">
+      <div class="toc-label">// contents</div>
+      <ul>
+        <li class="active"><a href="#problem">01 · Problem</a></li>
+        <li><a href="#approach">02 · Approach</a></li>
+        <li><a href="#stack">03 · Stack</a></li>
+      </ul>
+    </aside>
+
+    <main>
+      <div class="dev-banner">Status: work-in-progress — repo is rough, cleanup in flight.</div>
+
+      <section id="problem" class="cs-section">
+        <div class="cs-section-num">// 01 / problem</div>
+        <h2>Two brokerages, one ledger.</h2>
+        <p>Coinbase and Robinhood each have their own API, schema, and quirks. Anyone trading on both ends up reconciling spreadsheets by hand. The goal: pull both into one Postgres warehouse and treat it like any other operational data — clean, queryable, joinable.</p>
+      </section>
+
+      <section id="approach" class="cs-section">
+        <div class="cs-section-num">// 02 / approach</div>
+        <h2>Normalize the schema, lean on SQL for analytics.</h2>
+        <p>Extract from each broker's REST API, transform into a unified <code class="mono">trades</code> + <code class="mono">positions</code> schema in PostgreSQL, then build SQL views on top for realized/unrealized P&amp;L, position-size weighting, and time-windowed returns.</p>
+        <ul>
+          <li>Per-broker extractors handle API auth, pagination, rate limits</li>
+          <li>Normalized schema isolates broker quirks from analytics queries</li>
+          <li>Daily refresh job catches new trades incrementally</li>
+        </ul>
+      </section>
+
+      <section id="stack" class="cs-section">
+        <div class="cs-section-num">// 03 / stack</div>
+        <h2>Stack.</h2>
+        <div class="pill-row">
+          <span class="pill">Python</span>
+          <span class="pill">Coinbase API</span>
+          <span class="pill">Robinhood API</span>
+          <span class="pill">PostgreSQL</span>
+          <span class="pill">SQL</span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>aug.turner / 2026 · KC, MO</span>
+      <span>built with ♥ + SQL</span>
+    </div>
+  </footer>
+
+  <script>
+    // Active TOC highlight on scroll
+    const tocLinks = document.querySelectorAll('.cs-toc li');
+    const sections = document.querySelectorAll('.cs-section[id]');
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const id = e.target.id;
+        tocLinks.forEach((li) => li.classList.toggle('active', li.querySelector('a').getAttribute('href') === '#' + id));
+      });
+    }, { rootMargin: '-30% 0px -65% 0px' });
+    sections.forEach((s) => obs.observe(s));
+  </script>
+</body>
+</html>
