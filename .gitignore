@@ -1,0 +1,9 @@
+# Brainstorm session artifacts (mockups, server state) — kept local only
+.superpowers/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
