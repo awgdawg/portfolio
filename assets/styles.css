@@ -208,3 +208,11 @@ a { color: inherit; text-decoration: none; }
   color: var(--text-dim);
   margin-left: 6px;
 }
+
+.prose {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text-muted);
+  max-width: 680px;
+}
+.prose strong { color: var(--text); font-weight: 500; }
