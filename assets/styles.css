@@ -573,3 +573,21 @@ a { color: inherit; text-decoration: none; }
 }
 .dev-banner::before { content: '⚙ '; }
 
+/* ===== Skip nav (accessibility) ===== */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: var(--accent);
+  color: var(--bg);
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  border-radius: 0 0 4px 0;
+  z-index: 100;
+  transition: top 0.15s;
+}
+.skip-link:focus { top: 0; outline: none; }
+
