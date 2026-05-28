@@ -240,8 +240,19 @@ Public ("Anyone with link can view"); grab the embed iframe URL for the portfoli
 ## 7. Portfolio Integration
 
 Edits to `awgdawg/portfolio` when the project ships:
-1. **Homepage project card** (`index.html` `#projects`): add/flip a KC Blight card to `live`.
-2. **Homepage "Live BigQuery board" section**: this becomes a *second* live board — either a tabbed switch between CMS and KC Blight, or a stacked second iframe (decide during build; tabbed preferred to avoid a very tall page).
+
+1. **Replace the Snowflake migration card** in `index.html` `#projects`. The current first card (`projects/snowflake-migration.html`, `// case study` / `work` badge) is removed and replaced **in the same slot** by a KC Blight card:
+   - `href="projects/kc-blight.html"`, label `// bigquery`, badge `live`
+   - Title: "Kansas City blight lifecycle"
+   - Desc: 15-year property-blight pipeline across KCMO open data — Socrata EL → BigQuery → dbt → Looker, with a scheduled refresh.
+   - **Delete** `projects/snowflake-migration.html` (the Snowflake *narrative* still lives in the About section, so no résumé signal is lost; only the dedicated case-study page goes away). The grid stays at 6 cards: KC Blight (live), CMS Medicare (live), NYC TLC (planned), GitHub Archive (planned), Receipts (live), CB Trading Journal (live).
+
+2. **Make the "Live BigQuery board" section (`#live`) tabbed.** It now hosts **two** boards — CMS Medicare and KC Blight — switched by a two-tab control so the page doesn't grow very tall:
+   - A small tab bar (two buttons, amber active state matching the palette) above the iframe container.
+   - One iframe per board; only the active board's iframe is visible. Lazy-load the inactive iframe's `src` on first activation (set `data-src` → `src` on click) so the page's initial load isn't slowed by two embeds — protects the Lighthouse score.
+   - Default active tab: CMS Medicare (the existing board) for least layout surprise; KC Blight is the second tab.
+   - Minimal vanilla JS (a click handler toggling an `.active` class + the lazy `src` swap), consistent with the site's no-framework approach. CSS for the tab bar added to `assets/styles.css`.
+
 3. **Case study page** `projects/kc-blight.html` (same template as `cms-medicare.html`):
    - **Problem** — cities need to see blight as a pipeline, not isolated complaints; where does it concentrate and how fast is it addressed?
    - **Approach** — Socrata EL → BigQuery → dbt (schema-reconciling union + accumulating-snapshot fact) → Looker, with a scheduled refresh. Include a snippet (the union model or the lifecycle fact).
@@ -272,9 +283,10 @@ Edits to `awgdawg/portfolio` when the project ships:
 - [ ] Public sharing enabled, embed URL obtained; colors match palette; mobile preview ok
 
 ### Portfolio
-- [ ] KC Blight project card → `live`; live-board section shows the new dashboard (tabbed with CMS)
+- [ ] Snowflake card replaced in-slot by the KC Blight card (`live`); `projects/snowflake-migration.html` deleted; grid still 6 cards
+- [ ] `#live` section is tabbed (CMS | KC Blight); inactive iframe lazy-loads its `src` on first tab activation
 - [ ] `projects/kc-blight.html` written with the 5 sections + real numbers
-- [ ] Lighthouse scores hold (≥ desktop 99 / mobile 93) after the second iframe
+- [ ] Lighthouse scores hold (≥ desktop 99 / mobile 93) after the tabbed second iframe
 
 ### Security
 - [ ] `.gitignore` excludes keys/.env from commit #1; gitleaks pre-commit installed; no token or key in history
