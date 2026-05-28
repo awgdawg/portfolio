@@ -98,10 +98,10 @@
   <div class="section-label">// 04 / projects</div>
   <h2 class="section-title">Selected work.</h2>
   <div class="proj-grid">
-    <a class="proj" href="projects/snowflake-migration.html">
-      <div class="proj-top"><span>// case study</span><span class="badge work">work</span></div>
-      <h3 class="proj-title">Snowflake migration · healthcare BI</h3>
-      <p class="proj-desc">Rebuilt enterprise reporting pipeline from SQL Server to Snowflake/OCI. 8× query speedup, 10M+ rows migrated, full Power BI semantic model refactor.</p>
+    <a class="proj" href="projects/kc-blight.html">
+      <div class="proj-top"><span>// bigquery</span><span class="badge live">live</span></div>
+      <h3 class="proj-title">Kansas City blight lifecycle</h3>
+      <p class="proj-desc">15-year property-blight pipeline across KCMO open data — Socrata extract-load → BigQuery → dbt → Looker, with a scheduled refresh.</p>
     </a>
     <a class="proj" href="projects/cms-medicare.html">
       <div class="proj-top"><span>// bigquery</span><span class="badge live">live</span></div>
@@ -132,13 +132,24 @@
 </section>
     <section id="live" class="container section">
   <div class="section-label">// 05 / live</div>
-  <h2 class="section-title">Live BigQuery board.</h2>
-  <p class="prose" style="margin-bottom: 20px; max-width: none;">A real Looker Studio dashboard powered by one of the case-study queries — embedded, refreshes from BigQuery.</p>
-  <div class="bq-embed" id="bq-embed">
+  <h2 class="section-title">Live BigQuery boards.</h2>
+  <p class="prose" style="margin-bottom: 20px; max-width: none;">Real Looker Studio dashboards powered by the case-study models — embedded, refreshing from BigQuery.</p>
+  <div class="bq-tabs" role="tablist">
+    <button class="bq-tab active" role="tab" aria-selected="true" data-target="bq-cms">CMS Medicare</button>
+    <button class="bq-tab" role="tab" aria-selected="false" data-target="bq-blight">KC Blight</button>
+  </div>
+  <div class="bq-embed bq-panel active" id="bq-cms">
     <iframe src="https://datastudio.google.com/embed/reporting/e620b108-dee9-4f15-923f-5cb0d60b7331/page/rAQzF"
             style="width:100%;height:100%;border:0;"
             loading="lazy"
             title="CMS Medicare cost-payment gap dashboard"
+            allowfullscreen></iframe>
+  </div>
+  <div class="bq-embed bq-panel" id="bq-blight">
+    <iframe data-src="KC_BLIGHT_EMBED_URL"
+            style="width:100%;height:100%;border:0;"
+            loading="lazy"
+            title="Kansas City blight lifecycle dashboard"
             allowfullscreen></iframe>
   </div>
 </section>

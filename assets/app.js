@@ -53,4 +53,26 @@
     });
   }, { rootMargin: '-30% 0px -65% 0px' });
   sections.forEach((s) => navObserver.observe(s));
+
+  // ===== Live BigQuery board tabs (with lazy iframe load) =====
+  const bqTabs = document.querySelectorAll('.bq-tab');
+  bqTabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      const targetId = tab.dataset.target;
+      bqTabs.forEach((t) => {
+        const on = t === tab;
+        t.classList.toggle('active', on);
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      document.querySelectorAll('.bq-panel').forEach((p) => {
+        p.classList.toggle('active', p.id === targetId);
+      });
+      const panel = document.getElementById(targetId);
+      if (panel) {
+        panel.classList.add('reveal-in'); // ensure visible even if revealed while hidden
+        const iframe = panel.querySelector('iframe[data-src]');
+        if (iframe && !iframe.src) iframe.src = iframe.dataset.src; // lazy-load on first open
+      }
+    });
+  });
 })();

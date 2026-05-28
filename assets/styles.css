@@ -318,6 +318,28 @@ a { color: inherit; text-decoration: none; }
   margin: 0 auto;
   overflow: hidden;
 }
+.bq-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+.bq-tab {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.bq-tab:hover { color: var(--text); }
+.bq-tab.active {
+  color: var(--bg);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.bq-panel { display: none; }
+.bq-panel.active { display: block; }
+
 /* When live, replace .bq-placeholder with:
    <iframe src="LOOKER_STUDIO_PUBLIC_URL" style="width:100%;height:100%;border:0;" loading="lazy"></iframe>
 */

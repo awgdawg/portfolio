@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Kansas City blight lifecycle — August Turner</title>
+  <meta name="description" content="dbt-bigquery case study: 15 years of Kansas City property blight, from first violation to dangerous-building and demolition. Socrata extract-load, accumulating-snapshot model, Looker Studio dashboard.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Kansas City blight lifecycle — August Turner">
+  <meta property="og:description" content="dbt-bigquery case study: 15 years of Kansas City property blight, modeled as a funnel from violation to demolition.">
+  <meta property="og:url" content="https://augustturner.dev/projects/kc-blight.html">
+  <meta property="og:image" content="https://augustturner.dev/assets/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Kansas City blight lifecycle — August Turner">
+  <meta name="twitter:description" content="dbt-bigquery case study: 15 years of Kansas City property blight, modeled as a funnel from violation to demolition.">
+  <meta name="twitter:image" content="https://augustturner.dev/assets/og-image.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oxanium:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="../assets/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <nav class="nav">
+    <div class="container nav-inner">
+      <a href="../" class="nav-brand">aug.turner</a>
+      <a href="../#projects" class="nav-links" style="font-family:var(--font-mono);font-size:11px;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase;">← back to portfolio</a>
+    </div>
+  </nav>
+
+  <header class="cs-container cs-header">
+    <div class="cs-crumb">// projects / case-study · 01</div>
+    <h1 class="cs-title">Kansas City<br>blight lifecycle.</h1>
+    <p class="cs-subtitle">A dbt-bigquery project tracing two decades of Kansas City property blight — from a property's first code violation, through repeat violations, to a "dangerous building" designation and demolition. Three KCMO open-data sources, a Python extract-load layer, and an accumulating-snapshot model. Dashboard embedded on the homepage.</p>
+    <div class="cs-meta">
+      <div class="cs-meta-item"><div class="lbl">// source</div><div class="val">data.kcmo.org · 3 datasets</div></div>
+      <div class="cs-meta-item"><div class="lbl">// type</div><div class="val"><span class="badge live">bigquery · live</span></div></div>
+    </div>
+  </header>
+
+  <div class="cs-container cs-body">
+    <aside class="cs-toc">
+      <div class="toc-label">// contents</div>
+      <ul>
+        <li class="active"><a href="#problem">01 · Problem</a></li>
+        <li><a href="#approach">02 · Approach</a></li>
+        <li><a href="#outcome">03 · Outcome</a></li>
+        <li><a href="#stack">04 · Stack</a></li>
+        <li><a href="#links">05 · Links</a></li>
+      </ul>
+    </aside>
+
+    <main id="main">
+      <section id="problem" class="cs-section">
+        <div class="cs-section-num">// 01 / problem</div>
+        <h2>Blight is a pipeline, not a list of complaints.</h2>
+        <p>Kansas City publishes property code violations and its dangerous-buildings list as open data — but spread across separate datasets, in two different schemas (a frozen 2009–2021 archive and a current EnerGov feed), with dirty, mixed-type columns and no shared clean key beyond the parcel <strong>PIN</strong>. Looked at row-by-row, a violation is just an isolated complaint.</p>
+        <p>The interesting questions are longitudinal: how many cited properties become <strong>repeat offenders</strong>, how few escalate all the way to <strong>demolition</strong>, where blight concentrates, and how fast the city actually responds — by council district. Answering those requires stitching the sources into one dimensional model that follows a single property across fifteen years.</p>
+      </section>
+
+      <section id="approach" class="cs-section">
+        <div class="cs-section-num">// 02 / approach</div>
+        <h2>Extract-load, then model the funnel.</h2>
+        <p>A Python script pulls all three Socrata datasets into a BigQuery raw layer (landed as all-STRING to survive dirty source columns), then a <strong>dbt project</strong> transforms them through staging → intermediate → marts. The centerpiece is an <strong>accumulating-snapshot fact</strong> — one row per property — that encodes the whole lifecycle in a single <code class="mono">current_stage</code> column:</p>
+        <pre class="code-block"><span class="sql-comment">-- fact_property_lifecycle.sql — one row per property (PIN)</span>
+<span class="sql-keyword">CASE</span>
+  <span class="sql-keyword">WHEN</span> <span class="sql-fn">COALESCE</span>(d.is_demolition_status, <span class="sql-keyword">FALSE</span>) <span class="sql-keyword">THEN</span> <span class="sql-string">'demolition'</span>
+  <span class="sql-keyword">WHEN</span> d.pin <span class="sql-keyword">IS NOT NULL</span>                       <span class="sql-keyword">THEN</span> <span class="sql-string">'dangerous_building'</span>
+  <span class="sql-keyword">WHEN</span> p.total_violations &gt;= <span class="sql-string">2</span>                 <span class="sql-keyword">THEN</span> <span class="sql-string">'repeat_violations'</span>
+  <span class="sql-keyword">ELSE</span> <span class="sql-string">'single_violation'</span>
+<span class="sql-keyword">END</span> <span class="sql-keyword">AS</span> current_stage</pre>
+        <ul>
+          <li>Sources: ~800K historical violations + ~175K current + the dangerous-buildings list, joined on parcel PIN (~972K fact rows after deduping)</li>
+          <li>Two facts: a transaction-grain <code class="mono">fact_violation</code> and the accumulating-snapshot <code class="mono">fact_property_lifecycle</code>; dims for property, council district, violation type, and date</li>
+          <li>Real-world cleaning: unified the two violation schemas, normalized ordinances across eras, KC-bounds-filtered junk geocodes, nulled resolution dates that precede the found date</li>
+          <li>34 tests (surrogate-key uniqueness, referential integrity, accepted values, singular data-quality checks) plus CI and a <strong>weekly scheduled refresh</strong> on GitHub Actions</li>
+        </ul>
+      </section>
+
+      <section id="outcome" class="cs-section">
+        <div class="cs-section-num">// 03 / outcome</div>
+        <h2>The funnel, quantified.</h2>
+        <div class="outcome-grid">
+          <div class="outcome"><div class="lbl">properties cited</div><div class="val">79,892</div></div>
+          <div class="outcome"><div class="lbl">repeat offenders</div><div class="val">85.6%</div></div>
+          <div class="outcome"><div class="lbl">median time to fix</div><div class="val">230 days</div></div>
+        </div>
+        <p>Across <strong>2005–2026</strong>, 79,892 properties drew <strong>~972,000 violations</strong>. The funnel narrows hard: <strong>85.6%</strong> of cited properties are repeat offenders, but only <strong>0.4%</strong> reach the dangerous-buildings list and <strong>0.03%</strong> active demolition. Citywide, <strong>87.9%</strong> of violations are eventually resolved — at a median of 230 days.</p>
+        <p>Blight is sharply concentrated and response time is uneven: <strong>Council District 3</strong> alone accounts for ~380K violations, the highest escalation rate, and the slowest response (260-day median) — versus <strong>District 2</strong> at 134 days, a near-2× accountability gap. The single most-cited property racked up <strong>282 violations</strong>; the most common citation, at 21% of all violations, is animal feces. The full Looker Studio board is embedded on the homepage.</p>
+      </section>
+
+      <section id="stack" class="cs-section">
+        <div class="cs-section-num">// 04 / stack</div>
+        <h2>Stack.</h2>
+        <div class="pill-row">
+          <span class="pill">Python</span>
+          <span class="pill">Socrata API</span>
+          <span class="pill">dbt-core</span>
+          <span class="pill">dbt-bigquery</span>
+          <span class="pill">BigQuery</span>
+          <span class="pill">Looker Studio</span>
+          <span class="pill">GitHub Actions</span>
+          <span class="pill">SQL</span>
+        </div>
+      </section>
+
+      <section id="links" class="cs-section">
+        <div class="cs-section-num">// 05 / links</div>
+        <h2>References.</h2>
+        <div class="link-row">
+          <div class="link-card"><div class="lbl">// repo</div><div class="val"><a href="https://github.com/awgdawg/kc-blight-analytics" target="_blank" rel="noopener" style="color:var(--accent)">↗ github.com/awgdawg/kc-blight-analytics</a></div></div>
+          <div class="link-card"><div class="lbl">// dashboard</div><div class="val"><a href="../#live" style="color:var(--accent)">↗ live board on homepage</a></div></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>aug.turner / 2026 · KC, MO</span>
+      <span>built with ♥ + SQL</span>
+    </div>
+  </footer>
+
+  <script>
+    const tocLinks = document.querySelectorAll('.cs-toc li');
+    const sections = document.querySelectorAll('.cs-section[id]');
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        const id = e.target.id;
+        tocLinks.forEach((li) => li.classList.toggle('active', li.querySelector('a').getAttribute('href') === '#' + id));
+      });
+    }, { rootMargin: '-30% 0px -65% 0px' });
+    sections.forEach((s) => obs.observe(s));
+  </script>
+</body>
+</html>
